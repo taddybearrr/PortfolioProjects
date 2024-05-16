@@ -1,0 +1,102 @@
+-- Total number of classes each client took in descending order
+SELECT
+  client,
+  COUNT(type) as class_type
+FROM
+  oos-da-project.client_data.class_history
+GROUP BY
+  client
+ORDER BY
+  class_type DESC;
+
+
+-- Total number of unique beginner students
+SELECT 
+  COUNT(DISTINCT client) AS TotalBeginnerStudents
+FROM 
+  oos-da-project.client_data.class_history
+WHERE 
+  type = 'BEG. Choreography (Ages 13+)';
+
+
+-- Number of beginner students who moved to intermediate or advanced
+SELECT 
+  COUNT(DISTINCT b.client) AS BeginnerToIntermediateOrAdvanced
+FROM
+  oos-da-project.client_data.class_history b
+LEFT JOIN
+  oos-da-project.client_data.class_history i 
+  ON b.client = i.client AND i.type = 'INT. Choreography (Ages 13+)'
+LEFT JOIN
+  oos-da-project.client_data.class_history a 
+  ON b.client = a.client AND a.type = 'ADV. Choreography (Ages 13+)'
+WHERE
+  b.type = 'BEG. Choreography (Ages 13+)'
+  AND (i.client IS NOT NULL OR a.client IS NOT NULL);
+
+
+-- Total number of unique intermediate students
+SELECT
+  COUNT(DISTINCT client) AS TotalIntermediateStudents
+FROM
+  oos-da-project.client_data.class_history
+WHERE type = 'INT. Choreography (Ages 13+)';
+
+
+-- Number of intermediate students who moved to advanced
+SELECT
+  COUNT(DISTINCT i.client) AS IntermediateToAdvanced
+FROM
+  oos-da-project.client_data.class_history i
+LEFT JOIN
+  oos-da-project.client_data.class_history a 
+  ON i.client = a.client AND a.type = 'ADV. Choreography (Ages 13+)'
+WHERE
+  i.type = 'INT. Choreography (Ages 13+)'
+  AND (a.client IS NOT NULL);
+
+
+-- Progression rate from beginner to intermediate/advanced
+SELECT
+  (SELECT COUNT(DISTINCT b.client)
+   FROM oos-da-project.client_data.class_history b
+   LEFT JOIN oos-da-project.client_data.class_history i
+    ON b.client = i.client AND i.type = 'INT. Choreography (Ages 13+)'
+   LEFT JOIN oos-da-project.client_data.class_history a 
+    ON b.client = a.client AND a.type = 'ADV. Choreography (Ages 13+)'
+   WHERE b.type = 'BEG. Choreography (Ages 13+)' 
+   AND (i.client IS NOT NULL OR a.client IS NOT NULL)) 
+   / 
+   (SELECT COUNT(DISTINCT client) 
+    FROM oos-da-project.client_data.class_history 
+    WHERE type = 'BEG. Choreography (Ages 13+)')
+   AS ProgressionRateBeginnerToIntermediateOrAdvanced;
+
+
+-- Progression rate from intermediate to advanced
+SELECT 
+  (SELECT COUNT(DISTINCT i.client)
+   FROM `oos-da-project.client_data.class_history` i
+   LEFT JOIN `oos-da-project.client_data.class_history` a 
+    ON i.client = a.client AND a.type = 'ADV. Choreography (Ages 13+)'
+   WHERE i.type = 'INT. Choreography (Ages 13+)' 
+   AND a.client IS NOT NULL) 
+   / 
+   (SELECT COUNT(DISTINCT client) 
+    FROM `oos-da-project.client_data.class_history` 
+    WHERE type = 'INT. Choreography (Ages 13+)')
+   AS ProgressionRateIntermediateToAdvanced;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
